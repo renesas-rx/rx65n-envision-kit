@@ -5,10 +5,13 @@
 <property id="com.renesas.smc.service.project.buildArtefactType" values="com.renesas.smc.service.project.buildArtefactType.exe"/>
 <toolchain id="com.renesas.smc.toolchain.rxc.toolchain.rxc">
 <option id="com.renesas.smc.toolchain.option.buildArtefactType" key="com.renesas.smc.toolchain.option.buildArtefactType.exe"/>
+<option id="com.renesas.smc.toolchain.option.rtos" key="com.renesas.smc.toolchain.option.rtos.none">
+<item id="com.renesas.smc.toolchain.option.rtos.freertos" value="FreeRTOS_RX_V10.0.00"/>
+</option>
 </toolchain>
 </configuration>
 <platform id="R5F565NEHxFB"/>
-<option id="board" value="ƒJƒXƒ^ƒ€ƒ†[ƒUƒ{[ƒh"/>
+<option id="board" value="ã‚«ã‚¹ã‚¿ãƒ ãƒ¦ãƒ¼ã‚¶ãƒœãƒ¼ãƒ‰"/>
 </general>
 <tool id="Clock">
 <Item current="true" id="mainclock.selectBox"/>
@@ -210,6 +213,19 @@
 <Item current="MHz" id="cacilsclk.unitTxt"/>
 <Item current="true" id="cacilsclk.Disabled"/>
 <Item current="60.0" id="sdclk.CurrentValue"/>
+<Item current="true" id="vccSetting.isSelected"/>
+<Item current="" id="vccSetting.InputValue"/>
+<Item current="vcc2_7-3_6" id="vccSetting.OutputValue"/>
+<Item current="3.3" id="vccSetting.vccTxt"/>
+<Item current="standardCL" id="subclock.generalBox"/>
+<Item current="true" id="uckdivider.selectBox"/>
+<Item current="false" id="rtcclk.selectBox"/>
+<Item current="" id="rtcclk.InputValue"/>
+<Item current="0" id="rtcclk.OutputValue"/>
+<Item current="-" id="rtcclk.frequencyTxt"/>
+<Item current="MHz" id="rtcclk.unitTxt"/>
+<Item current="true" id="rtcclk.Disabled"/>
+<Item current="true" id="rtcclk.SelectBoxDisabled"/>
 </tool>
 <tool id="Pins" version="1.0.0.0">
 <pinItem allocation="20" direction="None" id="XTAL" locked="false" status="0"/>
@@ -463,63 +479,117 @@
 </tool>
 <tool id="SWComponent" version="1.0.0.0">
 <configuration inuse="true" name="r_bsp">
-<component description="ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: ‚È‚µ&#10;The r_bsp package provides a foundation for code to be built on top of. It provides startup code, iodefines, and MCU information for different boards. There are 2 folders that make up the r_bsp package. The 'mcu' folder contains files that are common to a MCU group. These files provide functionality such as easy register access, CPU functions, and a file named 'mcu_info.h' for each MCU group. The 'mcu_info.h' file has information about the MCU on the board and is configured based on the information given in r_bsp_config.h. The information in 'mcu_info.h' is used to help configure Renesas middleware that uses the r_bsp package. The 'board' folder has a folder with startup code for each supported board.  Which MCU and board is chosen is decided by the settings in 'platform.h'. The user can choose which board they are using by uncommenting the include path that applies to their board. For example, if you are using the RSK+RX62N then you would uncomment the #include &quot;./board/rskrx62n/r_bsp.h&quot; include path. Users are encouraged to add their own boards to the 'board' directory. BSPs are configured by using the r_bsp_config.h file. Each board will have a reference configuration file named r_bsp_config_reference.h. The user should copy this file to their project, rename it to r_bsp_config.h, and use the options inside the file to configure the BSP for their project." detailDescription="Board Support Packages." display="r_bsp" id="r_bspGeneric(v=3.60)" version="Generic(v=3.60)"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: ãªã—&#10;The r_bsp package provides a foundation for code to be built on top of. It provides startup code, iodefines, and MCU information for different boards. There are 2 folders that make up the r_bsp package. The 'mcu' folder contains files that are common to a MCU group. These files provide functionality such as easy register access, CPU functions, and a file named 'mcu_info.h' for each MCU group. The 'mcu_info.h' file has information about the MCU on the board and is configured based on the information given in r_bsp_config.h. The information in 'mcu_info.h' is used to help configure Renesas middleware that uses the r_bsp package. The 'board' folder has a folder with startup code for each supported board.  Which MCU and board is chosen is decided by the settings in 'platform.h'. The user can choose which board they are using by uncommenting the include path that applies to their board. For example, if you are using the RSK+RX62N then you would uncomment the #include &quot;./board/rskrx62n/r_bsp.h&quot; include path. Users are encouraged to add their own boards to the 'board' directory. BSPs are configured by using the r_bsp_config.h file. Each board will have a reference configuration file named r_bsp_config_reference.h. The user should copy this file to their project, rename it to r_bsp_config.h, and use the options inside the file to configure the BSP for their project." detailDescription="Board Support Packages." display="r_bsp" id="r_bspGeneric(v=3.60)" version="Generic(v=3.60)"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
 </configuration>
 <configuration inuse="true" name="r_cmt_rx">
-<component description="ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: r_bsp ƒo[ƒWƒ‡ƒ“ 2.90, 3.00, 3.01, 3.10, 3.20, 3.30, 3.40, 3.50, 3.60&#10;This module creates a timer tick using a CMT channel based on a frequency input by the user." detailDescription="Simple CMT driver for creating timer tick." display="r_cmt_rx" id="r_cmt_rx3.20" version="3.20"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_bsp ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 2.90, 3.00, 3.01, 3.10, 3.20, 3.30, 3.40, 3.50, 3.60&#10;This module creates a timer tick using a CMT channel based on a frequency input by the user." detailDescription="Simple CMT driver for creating timer tick." display="r_cmt_rx" id="r_cmt_rx3.20" version="3.20"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
 </configuration>
 <configuration inuse="true" name="r_flash_rx">
-<component description="ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: r_bsp ƒo[ƒWƒ‡ƒ“ 3.60&#10;This module allows the user to program, erase, write and blankcheck the Code and/or Data flash." detailDescription="Flash API for RX100, RX200, RX600. and RX700." display="r_flash_rx" id="r_flash_rx3.20" version="3.20"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_bsp ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 3.60&#10;This module allows the user to program, erase, write and blankcheck the Code and/or Data flash." detailDescription="Flash API for RX100, RX200, RX600. and RX700." display="r_flash_rx" id="r_flash_rx3.20" version="3.20"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
 </configuration>
 <configuration inuse="true" name="r_gpio_rx">
-<component description="ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: r_bsp ƒo[ƒWƒ‡ƒ“ 2.90, 3.00, 3.01, 3.10, 3.20, 3.30, 3.40, 3.50, 3.60&#10;This code implements a General Purpose Input/Output driver. Common features such as reading, writing, and setting the direction of ports and pins is supported. Enabling features such as open-drain outputs and internal pull-ups are also supported." detailDescription="General Purpose Input/Output Driver" display="r_gpio_rx" id="r_gpio_rx2.30" version="2.30"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_bsp ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 2.90, 3.00, 3.01, 3.10, 3.20, 3.30, 3.40, 3.50, 3.60&#10;This code implements a General Purpose Input/Output driver. Common features such as reading, writing, and setting the direction of ports and pins is supported. Enabling features such as open-drain outputs and internal pull-ups are also supported." detailDescription="General Purpose Input/Output Driver" display="r_gpio_rx" id="r_gpio_rx2.30" version="2.30"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
 </configuration>
 <configuration inuse="true" name="r_sci_iic_rx">
-<component description="ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: r_bsp ƒo[ƒWƒ‡ƒ“ 2.30, 2.50, 2.60, 2.70, 2.80, 2.90, 3.00, 3.01, 3.10, 3.20, 3.30, 3.40, 3.50, 3.60&#10; The SCI simple I2C mode fit module provides a method to transmit and receive data between the master and slave devices using the serial communications interface (SCI). The SCI simple I2C mode is in compliance with single master mode of the NXP I2C-bus (Inter-IC-Bus) interface.  " detailDescription="Simple IIC Driver." display="r_sci_iic_rx" id="r_sci_iic_rx2.20" version="2.20">
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_bsp ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 2.30, 2.50, 2.60, 2.70, 2.80, 2.90, 3.00, 3.01, 3.10, 3.20, 3.30, 3.40, 3.50, 3.60&#10; The SCI simple I2C mode fit module provides a method to transmit and receive data between the master and slave devices using the serial communications interface (SCI). The SCI simple I2C mode is in compliance with single master mode of the NXP I2C-bus (Inter-IC-Bus) interface.  " detailDescription="Simple IIC Driver." display="r_sci_iic_rx" id="r_sci_iic_rx2.20" version="2.20">
+<gridItem id="SSCL0" selectedIndex="0"/>
+<gridItem id="SSDA0" selectedIndex="0"/>
+<gridItem id="SCI0" selectedIndex="0"/>
+<gridItem id="SSCL1" selectedIndex="0"/>
+<gridItem id="SSDA1" selectedIndex="0"/>
+<gridItem id="SCI1" selectedIndex="0"/>
+<gridItem id="SSCL2" selectedIndex="0"/>
+<gridItem id="SSDA2" selectedIndex="0"/>
+<gridItem id="SCI2" selectedIndex="0"/>
+<gridItem id="SSCL3" selectedIndex="0"/>
+<gridItem id="SSDA3" selectedIndex="0"/>
+<gridItem id="SCI3" selectedIndex="0"/>
+<gridItem id="SSCL4" selectedIndex="0"/>
+<gridItem id="SSDA4" selectedIndex="0"/>
+<gridItem id="SCI4" selectedIndex="0"/>
+<gridItem id="SSCL5" selectedIndex="0"/>
+<gridItem id="SSDA5" selectedIndex="0"/>
+<gridItem id="SCI5" selectedIndex="0"/>
 <gridItem id="SSCL6" selectedIndex="1"/>
 <gridItem id="SSDA6" selectedIndex="1"/>
 <gridItem id="SCI6" selectedIndex="1"/>
+<gridItem id="SSCL7" selectedIndex="0"/>
+<gridItem id="SSDA7" selectedIndex="0"/>
+<gridItem id="SCI7" selectedIndex="0"/>
+<gridItem id="SSCL8" selectedIndex="0"/>
+<gridItem id="SSDA8" selectedIndex="0"/>
+<gridItem id="SCI8" selectedIndex="0"/>
+<gridItem id="SSCL9" selectedIndex="0"/>
+<gridItem id="SSDA9" selectedIndex="0"/>
+<gridItem id="SCI9" selectedIndex="0"/>
+<gridItem id="SSCL10" selectedIndex="0"/>
+<gridItem id="SSDA10" selectedIndex="0"/>
+<gridItem id="SCI10" selectedIndex="0"/>
+<gridItem id="SSCL11" selectedIndex="0"/>
+<gridItem id="SSDA11" selectedIndex="0"/>
+<gridItem id="SCI11" selectedIndex="0"/>
+<gridItem id="SSCL12" selectedIndex="0"/>
+<gridItem id="SSDA12" selectedIndex="0"/>
+<gridItem id="SCI12" selectedIndex="0"/>
 </component>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
 </configuration>
 <configuration inuse="true" name="r_tfat_driver_rx">
-<component description="ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: r_tfat_rx ƒo[ƒWƒ‡ƒ“ 3.03&#10;&#10;  " detailDescription="Memory Driver Interface for Open Source FAT File System." display="r_tfat_driver_rx" id="r_tfat_driver_rx1.03" version="1.03"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_tfat_rx ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 3.03&#10;&#10;  " detailDescription="Memory Driver Interface for Open Source FAT File System." display="r_tfat_driver_rx" id="r_tfat_driver_rx1.03" version="1.03"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
 </configuration>
 <configuration inuse="true" name="r_tfat_rx">
-<component description="ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: r_tfat_driver_rx ƒo[ƒWƒ‡ƒ“ 1.03&#10;&#10;  " detailDescription="Open Source FAT File System." display="r_tfat_rx" id="r_tfat_rx3.03" version="3.03"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_tfat_driver_rx ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 1.03&#10;&#10;  " detailDescription="Open Source FAT File System." display="r_tfat_rx" id="r_tfat_rx3.03" version="3.03"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
 </configuration>
 <configuration inuse="true" name="r_usb_basic">
-<component description="ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: r_bsp ƒo[ƒWƒ‡ƒ“ 3.60&#10;The r_usb_basic package provides USB basic host and peripheral firmware" detailDescription="USB basic(low-level) driver" display="r_usb_basic" id="r_usb_basic1.22" version="1.22"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_bsp ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 3.60&#10;The r_usb_basic package provides USB basic host and peripheral firmware" detailDescription="USB basic(low-level) driver" display="r_usb_basic" id="r_usb_basic1.22" version="1.22"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
 </configuration>
 <configuration inuse="true" name="r_usb_hmsc">
-<component description="ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: r_bsp ƒo[ƒWƒ‡ƒ“ 3.60&#10;ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: r_usb_basic ƒo[ƒWƒ‡ƒ“ 1.22&#10;The r_usb_hmsc package provides USB Host mass storage class driver" detailDescription="USB Host Mass Storage Class" display="r_usb_hmsc" id="r_usb_hmsc1.22" version="1.22"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_bsp ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 3.60&#10;ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_usb_basic ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 1.22&#10;The r_usb_hmsc package provides USB Host mass storage class driver" detailDescription="USB Host Mass Storage Class" display="r_usb_hmsc" id="r_usb_hmsc1.22" version="1.22"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
 </configuration>
 <configuration inuse="true" name="r_irq_rx">
-<component description="ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: r_bsp ƒo[ƒWƒ‡ƒ“ 2.90, 3.00, 3.01, 3.10, 3.20, 3.30, 3.40, 3.50, 3.60&#10;This software provides a unified, abstracted interface for low-level handling of interrupt events from external pin interrupts. These events are mapped to the IRQ vectors." detailDescription="IRQ Driver" display="r_irq_rx" id="r_irq_rx2.20" version="2.20"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_bsp ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 2.90, 3.00, 3.01, 3.10, 3.20, 3.30, 3.40, 3.50, 3.60&#10;This software provides a unified, abstracted interface for low-level handling of interrupt events from external pin interrupts. These events are mapped to the IRQ vectors." detailDescription="IRQ Driver" display="r_irq_rx" id="r_irq_rx2.20" version="2.20">
+<gridItem id="IRQ0" selectedIndex="0"/>
+<gridItem id="IRQ1" selectedIndex="0"/>
+<gridItem id="IRQ2" selectedIndex="0"/>
+<gridItem id="IRQ3" selectedIndex="0"/>
+<gridItem id="IRQ4" selectedIndex="0"/>
+<gridItem id="IRQ5" selectedIndex="0"/>
+<gridItem id="IRQ6" selectedIndex="0"/>
+<gridItem id="IRQ7" selectedIndex="0"/>
+<gridItem id="IRQ8" selectedIndex="0"/>
+<gridItem id="IRQ9" selectedIndex="0"/>
+<gridItem id="IRQ10" selectedIndex="0"/>
+<gridItem id="IRQ11" selectedIndex="0"/>
+<gridItem id="IRQ12" selectedIndex="0"/>
+<gridItem id="IRQ13" selectedIndex="0"/>
+<gridItem id="IRQ14" selectedIndex="0"/>
+<gridItem id="IRQ15" selectedIndex="0"/>
+</component>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
 </configuration>
 <configuration inuse="true" name="r_glcdc_rx">
-<component description="ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: r_bsp ƒo[ƒWƒ‡ƒ“ 3.60&#10;The GLCDC FIT module provides a method to output graphics data to LCD panel in graphics format which supports the graphics data read from the memory." detailDescription="Graphics LCD Controller Module." display="r_glcdc_rx" id="r_glcdc_rx1.00" version="1.00">
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_bsp ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 3.60&#10;The GLCDC FIT module provides a method to output graphics data to LCD panel in graphics format which supports the graphics data read from the memory." detailDescription="Graphics LCD Controller Module." display="r_glcdc_rx" id="r_glcdc_rx1.00" version="1.00">
 <gridItem id="LCD_CLK" selectedIndex="1"/>
 <gridItem id="LCD_TCON0" selectedIndex="1"/>
+<gridItem id="LCD_TCON1" selectedIndex="0"/>
 <gridItem id="LCD_TCON2" selectedIndex="1"/>
 <gridItem id="LCD_TCON3" selectedIndex="1"/>
 <gridItem id="LCD_DATA0" selectedIndex="1"/>
@@ -538,14 +608,33 @@
 <gridItem id="LCD_DATA13" selectedIndex="1"/>
 <gridItem id="LCD_DATA14" selectedIndex="1"/>
 <gridItem id="LCD_DATA15" selectedIndex="1"/>
+<gridItem id="LCD_DATA16" selectedIndex="0"/>
+<gridItem id="LCD_DATA17" selectedIndex="0"/>
+<gridItem id="LCD_DATA18" selectedIndex="0"/>
+<gridItem id="LCD_DATA19" selectedIndex="0"/>
+<gridItem id="LCD_DATA20" selectedIndex="0"/>
+<gridItem id="LCD_DATA21" selectedIndex="0"/>
+<gridItem id="LCD_DATA22" selectedIndex="0"/>
+<gridItem id="LCD_DATA23" selectedIndex="0"/>
+<gridItem id="LCD_EXTCLK" selectedIndex="0"/>
 </component>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
 </configuration>
 <configuration inuse="true" name="r_dmaca_rx">
-<component description="ˆË‘¶ƒ‚ƒWƒ…[ƒ‹: r_bsp ƒo[ƒWƒ‡ƒ“ 3.60&#10;This driver gives the user an easy API to control the MCU's DMAC. DMAC module transfers the data&#10;                 corresponding to an interrupt when it signals to DMAC. Each module can register its transfer settings with DMAC driver such as: interrupt number, destination and source address, data counter, transfer mode (3 modes: normal, repeat, block), enable or disable chain transfer." detailDescription="DMAC driver" display="r_dmaca_rx" id="r_dmaca_rx1.05" version="1.05"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
-<source description="Firmware Integration Technology (FIT) ‚É‘Î‰ž‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒg‚ÍARXƒtƒ@ƒ~ƒŠ‚Ìƒ}ƒCƒRƒ“ŠÔ‚Å‚Ì‚‚¢ˆÚs«‚ð“Á’¥‚Æ‚µ‚Ü‚·B" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_bsp ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 3.60&#10;This driver gives the user an easy API to control the MCU's DMAC. DMAC module transfers the data&#10;                 corresponding to an interrupt when it signals to DMAC. Each module can register its transfer settings with DMAC driver such as: interrupt number, destination and source address, data counter, transfer mode (3 modes: normal, repeat, block), enable or disable chain transfer." detailDescription="DMAC driver" display="r_dmaca_rx" id="r_dmaca_rx1.05" version="1.05"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+</configuration>
+<configuration inuse="true" name="r_drw2d_rx">
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: ãªã—&#10;The driver allows direct access to all hardware features.  Functionality not directly supported by hardware is not offered (emulated) by the driver." detailDescription="Drawing 2D engine driver for RX MCUs" display="r_drw2d_rx" id="r_drw2d_rx1.02" version="1.02"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+</configuration>
+<configuration inuse="true" name="r_emwin_rx">
+<component description="ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_cmt_rx ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 3.21&#10;ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_dmaca_rx ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 1.05&#10;ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_drw2d_rx ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 1.02&#10;ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_glcdc_rx ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 1.00&#10;ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_gpio_rx ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 2.31&#10;ä¾å­˜ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«: r_sci_iic_rx ãƒãƒ¼ã‚¸ãƒ§ãƒ³ 2.20&#10;emWin is designed to provide an efficient, processor- and display controller-independent graphical user interface for any application that operates with a graphical display. It is compatible with single-task and multitask environments, with a proprietary operating system or with any commercial RTOS. emWin is shipped as C source code. It may be adapted to any size physical and virtual display with any display controller and CPU." detailDescription="Graphic Library with Graphical User Interface" display="r_emwin_rx" id="r_emwin_rx5.42" version="5.42"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
+<source description="Components supporting Firmware Integration Technology" display="Firmware Integration Technology" id="com.renesas.smc.tools.swcomponent.fit.source"/>
 </configuration>
 </tool>
 </smc>

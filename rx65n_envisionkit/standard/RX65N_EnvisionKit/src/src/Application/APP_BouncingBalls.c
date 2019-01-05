@@ -29,7 +29,40 @@ Purpose     : Bouncing ball demo
 *
 **********************************************************************
 */
-#define TRIGGER_DAVE 1
+#define TRIGGER_DAVE  0
+
+#define ID_WINDOW_0   (GUI_ID_USER + 0x00)
+#define ID_BUTTON_0   (GUI_ID_USER + 0x01)
+#define ID_BUTTON_1   (GUI_ID_USER + 0x02)
+#define ID_BUTTON_2   (GUI_ID_USER + 0x03)
+#define ID_CHECKBOX_0 (GUI_ID_USER + 0x04)
+#define ID_CHECKBOX_1 (GUI_ID_USER + 0x05)
+#define ID_TEXT_0     (GUI_ID_USER + 0x06)
+#define ID_SLIDER_0   (GUI_ID_USER + 0x07)
+
+#define MIN_RANDOM_V  0           // Minimum velocity (x or y) to be used in generating random balls
+#define MAX_RANDOM_V  80          // Maximum velocity (x or y) to be used in generating random balls
+#define MIN_RANDOM_R  8           // Minimum radius to be used in generating random balls
+#define MAX_RANDOM_R  20          // Maximum radius to be used in generating random balls
+#define M_PI          3.1415926f
+#define M_TO_A_RATIO  0.1f        // Ratio of mass to area used in generating random balls
+
+#define TIME_SLICE        20
+#define NUM_BALLS         24
+#define GRAVITY           80
+#define PERIOD_SENTINEL 1000
+
+#define TIMER_ID_ADVANCE  123
+#define TIMER_ID_SENTINEL 456
+
+#define APP_RESTART       (WM_USER + 0)
+
+#if GUI_VERSION < 54400
+  #define WM_USER_DATA (WM_USER + 0)
+#endif
+#ifdef WIN32
+#include <malloc.h>
+#endif
 
 /*********************************************************************
 *
@@ -37,13 +70,6 @@ Purpose     : Bouncing ball demo
 *
 **********************************************************************
 */
-static const GUI_BITMAP * _apBalls[] = {
-  &bmBallGray_30x30,
-  &bmBallGreen_30x30,
-  &bmBallRed_30x30,
-  &bmBallYellow_30x30,
-};
-
 static const GUI_COLOR _aColors[] = {
   COLOR_GRAY,
   COLOR_GREEN,
@@ -57,8 +83,13 @@ static const GUI_COLOR _aColors[] = {
 *
 **********************************************************************
 */
-static void (* _pfKeepArea) (BOUNCE_DATA * pData)                       = KeepArea_FPU;
-static void (* _pfMoveBalls)(BOUNCE_DATA * pData, GUI_TIMER_TIME tDiff) = MoveBalls_FPU;
+static void (* _pb_BALLSSIM_AdvanceSim)(BALLSIM * pBallsim, const float dt);
+
+#ifdef WIN32
+static size_t _AllocatedBytes;
+#endif
+
+static WM_HWIN _hWin;
 
 /*********************************************************************
 *
@@ -94,7 +125,7 @@ static void _cbButtonHelp(WM_MESSAGE * pMsg) {
 */
 static void _cbButtonOnOff(WM_MESSAGE * pMsg) {
   const GUI_BITMAP * pBm;
-  static int * pOnOff;
+  int * pOnOff;
   int IsPressed;
   
   switch (pMsg->MsgId) {
@@ -132,152 +163,272 @@ static void _cbButtonHome(WM_MESSAGE * pMsg) {
   }
 }
 
+#include "APP_BouncingBalls_AdvanceSim.h"
+
 /*********************************************************************
 *
-*       _CreateBall
+*       Static code: Ballsim Window
+*
+**********************************************************************
 */
-static void _CreateBall(BOUNCE_DATA * pData) {
-  static int Index;
-  BALL * pBall;
+/*********************************************************************
+*
+*       _UpdateDisplay
+*/
+static void _UpdateDisplay(WM_HWIN hWin, BALLSIM * pBallsim, int Fps) {
+  BALL * pBalli;
+  U32    Color;
 
-  pBall = calloc(1, sizeof(BALL));
-  pBall->pBm = _apBalls[Index];
-  pBall->Color = _aColors[Index];
-  if (++Index == GUI_COUNTOF(_apBalls)) {
-    Index = 0;
+  //
+  // Draw background
+  //
+  if (pBallsim->pConfig->pfDrawBk) {
+    pBallsim->pConfig->pfDrawBk(hWin, pBallsim->pConfig);
+  } else {
+    GUI_SetBkColor(pBallsim->pConfig->ColorBk);
+    GUI_Clear();
   }
-  pBall->vx = VX_MIN + VX_RANGE + (float)((rand() % (VX_RANGE * 2)) - VX_RANGE);
-  pBall->vy = 0;
-  pBall->xPos = pBall->yPos = R_BALL + PENSIZE;
-  pBall->pNext = pData->pFirst;
-  if (pData->pFirst) {
-    pData->pFirst->pPrev = pBall;
+  //
+  // Draw all balls
+  //
+  pBalli = pBallsim->pFirstBall;
+  while (pBalli) {
+    if (pBallsim->pConfig->pfDrawBall) {
+      pBallsim->pConfig->pfDrawBall(hWin, pBallsim->pConfig, pBalli->Index, pBalli->p.x, pBalli->p.y, pBalli->r);
+    } else {
+      Color = GUI_MAKE_COLOR(pBalli->Index);
+      GUI_SetColor(Color);
+      GUI_FillCircle(pBalli->p.x, pBalli->p.y, pBalli->r);
+    }
+    pBalli = pBalli->pNext;
   }
-  pData->pFirst = pBall;
-  pData->NumBalls++;
+  //
+  // FPS
+  //
+  GUI_SetFont(&GUI_Font16_F);
+  GUI_SetTextMode(GUI_TM_TRANS);
+  GUI_GotoXY(5, 5);
+  GUI_DispString("FPS: ");
+  GUI_DispDecMin(Fps);
 }
 
 /*********************************************************************
 *
-*       _DeleteSlowBalls
+*       _AddRandomBalls
 */
-static void _DeleteSlowBalls(BOUNCE_DATA * pData) {
+static void _AddRandomBalls(BALLSIM * pBallsim) {
+  unsigned i, PosOccupied, Cnt;
+  float d, dx, dy;
   BALL * pBall;
-  BALL * pBallDelete;
-  
-  pBall = pData->pFirst;
-  while (pBall) {
-    pBallDelete = pBall;
-    pBall = pBall->pNext;
-    if ((pBallDelete->yPos + R_BALL) > (pData->y1 - 5)) {
-      if (abs(pBallDelete->vy) < THRESHOLD) {
-        if (pBallDelete->pPrev) {
-          pBallDelete->pPrev->pNext = pBallDelete->pNext;
+  BALL * pBalli;
+  BALLSIM_CONFIG * pConfig;
+
+  pConfig = pBallsim->pConfig;
+  for (i = 0; i < pConfig->NumBalls; i++) {
+    pBall = _BALL_Create();
+    if (pBallsim->pConfig->HasInitialVelocity) {
+      pBall->v.x = _GetRandomNumber(pConfig->vMin, pConfig->vMax);
+      pBall->v.y = _GetRandomNumber(pConfig->vMin, pConfig->vMax);
+    }
+    pBall->Index = (U32)_GetRandomNumber(0, pConfig->Range);
+    if (pConfig->pRadius) {
+      pBall->r = *(pConfig->pRadius + pBall->Index);
+    } else {
+      pBall->r = _GetRandomNumber(pConfig->rMin, pConfig->rMax);
+    }
+    pBall->m = M_TO_A_RATIO * M_PI * pBall->r * pBall->r;
+    //
+    // Generate legal position
+    //
+    Cnt = 0;
+    do {
+      pBall->p.x = _GetRandomNumber((float)pBall->r, (float)(pConfig->xSize) - pBall->r);
+      pBall->p.y = _GetRandomNumber((float)pBall->r, (float)(pConfig->ySize) - pBall->r);
+      PosOccupied = 0;
+      pBalli = pBallsim->pFirstBall;
+      while (pBalli) {
+        dx = pBalli->p.x - pBall->p.x;
+        dy = pBalli->p.y - pBall->p.y;
+        d = sqrt(dx * dx + dy * dy);
+        if (d < pBalli->r + pBall->r) {
+          PosOccupied = 1;
+          break;
         }
-        if (pBallDelete->pNext) {
-          pBallDelete->pNext->pPrev = pBallDelete->pPrev;
-        }
-        free(pBallDelete);
-        pData->NumBalls--;
+        pBalli = pBalli->pNext;
       }
+    } while (PosOccupied && (Cnt++ < 20));
+    //
+    // Add ball to array
+    //
+    if (PosOccupied == 0) {
+      _BALLSSIM_AddBall(pBallsim, pBall);
     }
   }
 }
 
 /*********************************************************************
 *
-*       _cbBounce
+*       _CreateBallsim
 */
-static void _cbBounce(WM_MESSAGE * pMsg) {
-  static GUI_TIMER_TIME tLastEvent;
-  static int FrameVisible;
-  static BOUNCE_DATA Data;
-  int xSizeWindow, ySizeWindow;
-  GUI_TIMER_TIME tNow, tDiff;
-  BALL * pBall;
-  BALL * pBallDelete;
+static BALLSIM * _CreateBallsim(WM_HWIN hWin) {
+  BALLSIM_CONFIG * pConfig;
+  BALLSIM        * pBallsim;
+  WALLS          * pWalls;
 
+  WM_GetUserData(hWin, &pConfig, sizeof(void *));
+  pBallsim = _BALLSIM_Create();
+  pBallsim->pConfig = pConfig;
+  pWalls = _WALLS_Create(0.f, 0.f, (float)pConfig->xSize, (float)pConfig->ySize);
+  _BALLSSIM_MoveWalls(pBallsim, pWalls);
+  _AddRandomBalls(pBallsim);
+  _Free(pWalls);
+  return pBallsim;
+}
+
+/*********************************************************************
+*
+*       _CheckBalls
+*/
+static int _CheckBalls(BALLSIM * pBallsim) {
+  BALL * pBalli;
+
+  //
+  // Check all balls
+  //
+  pBalli = pBallsim->pFirstBall;
+  while (pBalli) {
+    if (pBalli->p.x < pBalli->r) {
+      return 1;
+    }
+    if (pBalli->p.y < pBalli->r) {
+      return 1;
+    }
+    if (pBalli->p.x > (pBallsim->pConfig->xSize - pBalli->r)) {
+      return 1;
+    }
+    if (pBalli->p.y > (pBallsim->pConfig->ySize - pBalli->r)) {
+      return 1;
+    }
+    pBalli = pBalli->pNext;
+  }
+  return 0;
+}
+
+/*********************************************************************
+*
+*       _OnIdle
+*/
+static void _OnIdle(int Period) {
+  GUI_USE_PARA(Period);
+  WM_InvalidateWindow(_hWin);
+}
+
+/*********************************************************************
+*
+*       _cbBallsim
+*/
+static void _cbBallsim(WM_MESSAGE * pMsg) {
+  static BALLSIM            * pBallsim;
+  static GUI_TIMER_TIME       Time;
+  GUI_TIMER_TIME              tNow;
+  static WM_HTIMER            hTimer;
+  static WM_HTIMER            hTimerSentinel;
+
+  static int Fps;
+  static int FpsShow;
+  static int Cnt;
+  static GUI_TIMER_TIME tLastFrame;
+  static GUI_TIMER_TIME tNextFPS;
+  GUI_TIMER_TIME tUsed;
+  int Id;
+  WM_HWIN hParent;
+  
   switch (pMsg->MsgId) {
   case WM_DELETE:
-    FrameVisible = 0;
-    pBall = Data.pFirst;
-    while (pBall) {
-      pBallDelete = pBall;
-      pBall = pBall->pNext;
-      free(pBallDelete);
-    }
-    Data.NumBalls = 0;
-    Data.pFirst = NULL;
+    WM_DeleteTimer(hTimer);
+    WM_DeleteTimer(hTimerSentinel);
+    LCDCONF_EnableDave2D();
+    _BALLSSIM_Delete(pBallsim);
+    GUI_SetWaitEventTimedFunc(NULL);
     break;
-  case WM_CREATE:
-    tLastEvent = GUI_GetTime();
-    xSizeWindow = WM_GetWindowSizeX(pMsg->hWin);
-    ySizeWindow = WM_GetWindowSizeY(pMsg->hWin);
-    Data.x0 = Data.y0 = PENSIZE;
-    Data.x1 = xSizeWindow - PENSIZE - 1;
-    Data.y1 = ySizeWindow - PENSIZE - 1;
-    _CreateBall(&Data);
-    WM_CreateTimer(pMsg->hWin, ID_TIMER_MOVE, TIMER_PERIOD / 2, 0);
-    WM_CreateTimer(pMsg->hWin, ID_TIMER_CREATE, CREATE_PERIOD, 0);
+  case WM_USER_DATA:
+    pBallsim   = _CreateBallsim(pMsg->hWin);
+    hTimer     = WM_CreateTimer(pMsg->hWin, TIMER_ID_ADVANCE, TIME_SLICE, 0);
+    Time       = GUI_GetTime();
+    tNextFPS   = Time;
+    tLastFrame = 0;
+    Fps        = 0;
+    Cnt        = 1;
+    //
+    // Additional sentinel timer
+    //
+    hTimerSentinel = WM_CreateTimer(pMsg->hWin, TIMER_ID_SENTINEL, PERIOD_SENTINEL, 0);
+    //
+    // Use idle management to achieve a maximum of FPS
+    //
+    GUI_SetWaitEventTimedFunc(_OnIdle);
+    _hWin = pMsg->hWin;
     break;
-  case WM_TIMER:
-    WM_RestartTimer(pMsg->Data.v, 0);
-    switch (WM_GetTimerId(pMsg->Data.v)) {
-    case ID_TIMER_CREATE:
-      if (Data.NumBalls < MAX_NUM_BALLS) {
-        _CreateBall(&Data);
+  case WM_PRE_PAINT:
+    tNow = GUI_GetTime();
+    tUsed = tNow - tLastFrame;
+    if (tUsed) {
+      if (tNow >= tNextFPS) {
+        FpsShow = Fps / Cnt;
+        Fps = 1000 / tUsed;
+        Cnt = 1;
+        tNextFPS += 500;
+      } else {
+        Fps += 1000 / tUsed;
+        Cnt++;
       }
-      break;
-    case ID_TIMER_MOVE:
-      tNow = GUI_GetTime();
-      tDiff = tNow - tLastEvent;
-      tLastEvent = tNow;
-      _pfMoveBalls(&Data, tDiff);
-      _pfKeepArea(&Data);
-      _DeleteSlowBalls(&Data);
-      break;
     }
-    WM_InvalidateWindow(pMsg->hWin);
+    tLastFrame = tNow;
     break;
   case WM_PAINT:
-    xSizeWindow = WM_GetWindowSizeX(pMsg->hWin);
-    ySizeWindow = WM_GetWindowSizeY(pMsg->hWin);
-    if (FrameVisible == 0) {
-      GUI_SetColor(COLOR_SHAPE);
-      GUI_FillRect(0, 0, xSizeWindow - 1, PENSIZE - 1);
-      GUI_FillRect(0, PENSIZE, PENSIZE - 1, ySizeWindow - PENSIZE - 1);
-      GUI_FillRect(xSizeWindow - PENSIZE, PENSIZE, xSizeWindow - 1, ySizeWindow - PENSIZE - 1);
-      GUI_FillRect(0, ySizeWindow - PENSIZE, xSizeWindow - 1, ySizeWindow - 1);
-      FrameVisible = 1;
-    }
-    GUI_FillRect(PENSIZE, PENSIZE, xSizeWindow - PENSIZE- 1, ySizeWindow - PENSIZE - 1);
-#if 0
-    GUI_SetColor(GUI_BLACK);
-    GUI_SetTextMode(GUI_TM_TRANS);
-    GUI_DispDecAt(Data.NumBalls, 300, 10, 2);
-    GUI_SetColor(COLOR_BK);
-#endif
-    pBall = Data.pFirst;
-    while (pBall) {
-#if 0
-      GUI_DrawBitmap(pBall->pBm, (int)pBall->xPos - R_BALL,(int)pBall->yPos - R_BALL);
-#else
-      GUI_SetColor(pBall->Color);
-      GUI_FillCircle((int)pBall->xPos, (int)pBall->yPos, R_BALL - 1);
-      GUI_SetPenSize(4);
-      GUI_SetColor(COLOR_SHAPE);
-      GUI_AA_DrawCircle((int)pBall->xPos, (int)pBall->yPos, R_BALL - PENSIZE / 2);
-      GUI_SetPenSize(1);
-#endif
-      pBall = pBall->pNext;
+    _UpdateDisplay(pMsg->hWin, pBallsim, FpsShow);
+    break;
+  case WM_TIMER:
+    Id = WM_GetTimerId(pMsg->Data.v);
+    switch (Id) {
+    case TIMER_ID_ADVANCE:
+      WM_RestartTimer(pMsg->Data.v, pBallsim->pConfig->TimeSlice);
+      tNow = GUI_GetTime();
+      _pb_BALLSSIM_AdvanceSim(pBallsim, (float)(tNow - Time) / 1000);
+      Time = tNow;
+      WM_InvalidateWindow(pMsg->hWin);
+      break;
+    case TIMER_ID_SENTINEL:
+      WM_RestartTimer(pMsg->Data.v, 0);
+      //
+      // Restart demo if any ball is out of range
+      //
+      if (_CheckBalls(pBallsim)) {
+        hParent = WM_GetParent(pMsg->hWin);
+        WM_SendMessageNoPara(hParent, APP_RESTART);
+      }
+      break;
     }
     break;
   default:
     WM_DefaultProc(pMsg);
-    break;
   }
 }
 
+/*********************************************************************
+*
+*       _CreateBallsimWindow
+*/
+static WM_HWIN _CreateBallsimWindow(BALLSIM_CONFIG * pConfig, WM_HWIN hParent) {
+  WM_HWIN hWin;
+  
+  hWin = WM_CreateWindowAsChild(pConfig->xPos, pConfig->yPos, pConfig->xSize, pConfig->ySize, hParent, WM_CF_SHOW, _cbBallsim, sizeof(void *));
+  WM_SetUserData(hWin, &pConfig, sizeof(void *));
+#if GUI_VERSION < 54400
+  WM_SendMessageNoPara(hWin, WM_USER_DATA);
+#endif
+  return hWin;
+}
 /*********************************************************************
 *
 *       _ManagePointers
@@ -286,16 +437,37 @@ static void _cbBounce(WM_MESSAGE * pMsg) {
 static void _ManagePointers(int OnOff) {
   switch (OnOff) {
   case 0:
-    _pfKeepArea  = KeepArea_NOFPU;
-    _pfMoveBalls = MoveBalls_NOFPU;
+    _pb_BALLSSIM_AdvanceSim = BALLSSIM_AdvanceSim_NOFPU;
     break;
   case 1:
-    _pfKeepArea  = KeepArea_FPU;
-    _pfMoveBalls = MoveBalls_FPU;
+    _pb_BALLSSIM_AdvanceSim = BALLSSIM_AdvanceSim_FPU;
+    _pb_BALLSSIM_AdvanceSim = _BALLSSIM_AdvanceSim;
     break;
   }
 }
 #endif
+
+/*********************************************************************
+*
+*       _DrawBall
+*/
+static void _DrawBall(WM_HWIN hWin, void * pVoid, U32 Index, float x, float y, float r) {
+  GUI_SetColor(_aColors[Index]);
+  GUI_AA_FillCircle((int)x, (int)y, (int)r - 1);
+  GUI_SetPenSize(4);
+  GUI_SetColor(COLOR_SHAPE);
+  GUI_AA_DrawCircle((int)x, (int)y, (int)r - PENSIZE / 2);
+  GUI_SetPenSize(1);
+}
+
+/*********************************************************************
+*
+*       _DrawBk
+*/
+static void _DrawBk(WM_HWIN hWin, void * pVoid) {
+  GUI_SetBkColor(COLOR_BK);
+  GUI_Clear();
+}
 
 /*********************************************************************
 *
@@ -304,20 +476,31 @@ static void _ManagePointers(int OnOff) {
 static void _cbWin(WM_MESSAGE * pMsg) {
   const GUI_BITMAP * pBm;
   int xSizeWindow, ySizeWindow;
-  int xSizeWindow_tmp;
-  static int OnOff = 1;
-  static int * pOnOff;
+  static int OnOff_FPU;
+  static int * pOnOff_FPU;
+  static int OnOff_GPU;
+  static int * pOnOff_GPU;
   WM_HWIN hItem;
   int Id, NCode;
+  static BALLSIM_CONFIG Config;
 
   switch (pMsg->MsgId) {
+  case APP_RESTART:
+    //
+    // Restart demo in case of any ball is out of range
+    //
+    WM_DeleteWindow(pMsg->hWin);
+    BouncingBalls();
+    break;
   case WM_CREATE:
+    OnOff_FPU = 1;
+    OnOff_GPU = 1;
 #if TRIGGER_DAVE
 #ifndef WIN32
-    OnOff = LCDCONF_GetDaveActive();
+    OnOff_FPU = LCDCONF_GetDaveActive();
 #endif
 #else
-    _ManagePointers(OnOff);
+    _ManagePointers(OnOff_FPU);
 #endif
     xSizeWindow = WM_GetWindowSizeX(pMsg->hWin);
     ySizeWindow = WM_GetWindowSizeY(pMsg->hWin);
@@ -325,14 +508,41 @@ static void _cbWin(WM_MESSAGE * pMsg) {
     // Create bouncing window
     //
     pBm = BM_BUTTON_0_0;
-    WM_CreateWindowAsChild(BORDER, BORDER + pBm->YSize + BORDER, xSizeWindow - BORDER - pBm->XSize - 2 * BORDER, ySizeWindow - BORDER - pBm->YSize - 2 * BORDER, pMsg->hWin, WM_CF_SHOW, _cbBounce, 0);
     //
-    // Create On/Off button
+    // Configuration of ball simulation
+    //
+    Config.xPos             = BORDER + PENSIZE;
+    Config.yPos             = BORDER + PENSIZE + pBm->YSize + BORDER;
+    Config.xSize            = xSizeWindow - BORDER - pBm->XSize - 2 * BORDER - 2 * PENSIZE;
+    Config.ySize            = ySizeWindow - BORDER - pBm->YSize - 2 * BORDER - 2 * PENSIZE;
+    Config.Range            = 0xE0E0E0;
+    Config.NumBalls         = NUM_BALLS;
+    Config.TimeSlice        = TIME_SLICE;
+    Config.vMin             = MIN_RANDOM_V;
+    Config.vMax             = MAX_RANDOM_V;
+    Config.rMin             = MIN_RANDOM_R;
+    Config.rMax             = MAX_RANDOM_R;
+    Config.Gravity          = GRAVITY;
+    Config.Range            = GUI_COUNTOF(_aColors);
+    Config.HasGroundGravity = 1;
+    Config.pfDrawBk         = _DrawBk;
+    Config.pfDrawBall       = _DrawBall;
+    _CreateBallsimWindow(&Config, pMsg->hWin);
+    //
+    // Create On/Off button (FPU)
     //
     pBm = BM_BUTTON_0_0;
-    hItem = BUTTON_CreateUser(xSizeWindow - pBm->XSize - BORDER, ySizeWindow - pBm->YSize - BORDER, pBm->XSize, pBm->YSize, pMsg->hWin, WM_CF_SHOW, 0, ID_BUTTON_ONOFF, sizeof(pOnOff));
-    pOnOff = &OnOff;
-    BUTTON_SetUserData(hItem, &pOnOff, sizeof(pOnOff));
+    hItem = BUTTON_CreateUser(xSizeWindow - pBm->XSize - BORDER, ySizeWindow - pBm->YSize - BORDER, pBm->XSize, pBm->YSize, pMsg->hWin, WM_CF_SHOW, 0, ID_BUTTON_ONOFF_FPU, sizeof(pOnOff_FPU));
+    pOnOff_FPU = &OnOff_FPU;
+    BUTTON_SetUserData(hItem, &pOnOff_FPU, sizeof(pOnOff_FPU));
+    WM_SetCallback(hItem, _cbButtonOnOff);
+    //
+    // Create On/Off button (GPU)
+    //
+    pBm = BM_BUTTON_0_0;
+    hItem = BUTTON_CreateUser(xSizeWindow - pBm->XSize - BORDER, ySizeWindow - pBm->YSize * 2 - BORDER * 2 - 32, pBm->XSize, pBm->YSize, pMsg->hWin, WM_CF_SHOW, 0, ID_BUTTON_ONOFF_GPU, sizeof(pOnOff_GPU));
+    pOnOff_GPU = &OnOff_GPU;
+    BUTTON_SetUserData(hItem, &pOnOff_GPU, sizeof(pOnOff_GPU));
     WM_SetCallback(hItem, _cbButtonOnOff);
     //
     // Create home button
@@ -351,19 +561,31 @@ static void _cbWin(WM_MESSAGE * pMsg) {
     Id = WM_GetId(pMsg->hWinSrc);
     NCode = pMsg->Data.v;
     switch (Id) {
-    case ID_BUTTON_ONOFF:
+    case ID_BUTTON_ONOFF_FPU:
       switch (NCode) {
       case WM_NOTIFICATION_RELEASED:
-        OnOff ^= 1;
+        OnOff_FPU ^= 1;
 #if TRIGGER_DAVE
-        if (OnOff) {
+        if (OnOff_FPU) {
           LCDCONF_EnableDave2D();
         } else {
           LCDCONF_DisableDave2D();
         }
 #else
-        _ManagePointers(OnOff);
+        _ManagePointers(OnOff_FPU);
 #endif
+        break;
+      }
+      break;
+    case ID_BUTTON_ONOFF_GPU:
+      switch (NCode) {
+      case WM_NOTIFICATION_RELEASED:
+        OnOff_GPU ^= 1;
+        if (OnOff_GPU) {
+          LCDCONF_EnableDave2D();
+        } else {
+          LCDCONF_DisableDave2D();
+        }
         break;
       }
       break;
@@ -398,16 +620,17 @@ static void _cbWin(WM_MESSAGE * pMsg) {
     GUI_SetTextAlign(GUI_TA_CENTER | GUI_TA_BOTTOM);
     pBm = BM_BUTTON_0_0;
 #if TRIGGER_DAVE
-    xSizeWindow_tmp = xSizeWindow - BORDER - pBm->XSize - 18;
-    GUI_SetFont(FONT_SMALL);
-    GUI_SetTextAlign(GUI_TA_LEFT | GUI_TA_BOTTOM);
-    GUI_DispStringAt("2D Drawing", xSizeWindow_tmp, ySizeWindow - BORDER - pBm->YSize - 40);
-    GUI_SetFont(FONT_SMALL);
-    GUI_SetTextAlign(GUI_TA_LEFT | GUI_TA_BOTTOM);
-    GUI_DispStringAt("Engine", xSizeWindow_tmp, ySizeWindow - BORDER - pBm->YSize - 10);
+    GUI_DispStringAt("Dave2D", xSizeWindow - BORDER - pBm->XSize / 2, ySizeWindow - BORDER - pBm->YSize - 10);
 #else
     GUI_DispStringAt("FPU", xSizeWindow - BORDER - pBm->XSize / 2, ySizeWindow - BORDER - pBm->YSize - 10);
 #endif
+    GUI_SetTextAlign(GUI_TA_CENTER | GUI_TA_BOTTOM);
+    GUI_DispStringAt("GPU", xSizeWindow - BORDER - pBm->XSize / 2, ySizeWindow - BORDER * 2 - pBm->YSize * 2 - 10 - 32);
+    GUI_SetColor(COLOR_SHAPE);
+    GUI_FillRect(Config.xPos - PENSIZE, Config.yPos - PENSIZE, Config.xPos + Config.xSize + PENSIZE - 1, Config.yPos - 1);
+    GUI_FillRect(Config.xPos - PENSIZE, Config.yPos, Config.xPos - 1, Config.yPos + Config.ySize - 1);
+    GUI_FillRect(Config.xPos + Config.xSize, Config.yPos, Config.xPos + Config.xSize + PENSIZE - 1, Config.yPos + Config.ySize - 1);
+    GUI_FillRect(Config.xPos - PENSIZE, Config.yPos + Config.ySize, Config.xPos + Config.xSize + PENSIZE - 1, Config.yPos + Config.ySize + PENSIZE - 1);
     break;
   default:
     WM_DefaultProc(pMsg);
@@ -421,6 +644,30 @@ static void _cbWin(WM_MESSAGE * pMsg) {
 *
 **********************************************************************
 */
+/*********************************************************************
+*
+*       _Free
+*/
+void _Free(void * p) {
+#ifdef WIN32
+  _AllocatedBytes -= _msize(p);
+#endif
+  free(p);
+}
+
+/*********************************************************************
+*
+*       _Calloc
+*/
+void * _Calloc(size_t Num, size_t Size) {
+  void * p;
+  p = calloc(Num, Size);
+#ifdef WIN32
+  _AllocatedBytes += _msize(p);
+#endif
+  return p;
+}
+
 /*********************************************************************
 *
 *       BouncingBalls

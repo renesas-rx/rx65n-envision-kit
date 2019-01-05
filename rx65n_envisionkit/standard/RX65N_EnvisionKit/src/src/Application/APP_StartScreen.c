@@ -101,7 +101,7 @@ static void _cbWin(WM_MESSAGE * pMsg) {
                               ySizeWindow / 2 - BORDER, 
                               pMsg->hWin, WM_CF_SHOW, 0, 
                               ID_BUTTON_DRAWINGENGINE, 0);
-    BUTTON_SetText(hItem, "2D\nDrawing\nEngine");
+    BUTTON_SetText(hItem, "2D\nDrawing\nengine");
     BUTTON_SetFont(hItem, FONT_SMALL);
     BUTTON_SetSkin(hItem, _ButtonSkin);
     //
@@ -193,8 +193,8 @@ static void _cbWin(WM_MESSAGE * pMsg) {
     GUI_SetColor(COLOR_GREEN);
     GUI_DispStringAt("Bank Swap\n", xSizeWindow - pBm->XSize - 2 * BORDER, BORDER);
 #else
-//    GUI_SetColor(GUI_RED);
-//    GUI_DispStringAt("Rev. 1.1\n", xSizeWindow - pBm->XSize - 2 * BORDER, BORDER);
+    GUI_SetColor(GUI_RED);
+    GUI_DispStringAt("Rev. 1.2\n", xSizeWindow - pBm->XSize - 2 * BORDER, BORDER);
 #endif
     yPos = GUI_GetDispPosY();
     GUI_SetFont(FONT_LARGE);

@@ -30,14 +30,9 @@ Purpose     : Software update via USB
 #include "r_irq_rx_config.h" //Contains user configurable options and setup definitions
 #endif
 
-#define UPDATE_FILE_NAME "bench.rsu"
-
 void GUI_AddRect(GUI_RECT * pDest, const GUI_RECT * pRect, int Dist);
 #ifndef WIN32
 extern uint32_t load_firmware_process(void);
-extern void load_firmware_status(uint32_t *now_status, uint32_t *finish_status);
-extern void firmware_update_request(char *string);
-extern void firmware_update_status_initialize(void);
 #endif
 
 /*********************************************************************
@@ -67,15 +62,13 @@ extern void firmware_update_status_initialize(void);
 
 #define SET_VALUE      (WM_USER + 0)
 
-extern int in_bank_swap_flag;
-
 /*********************************************************************
 *
 *       Static data
 *
 **********************************************************************
 */
-int _IsRunning;
+static int _IsRunning;
 
 /*********************************************************************
 *
@@ -109,6 +102,7 @@ static void _IntToPercent(unsigned v, char * s) {
   // Mirror
   //
   t = s;
+  //m = (char *)(((PTR_ADDR)p + (PTR_ADDR)s) / 2);
   m = (char *)(((U32)p + (U32)s) / 2);
   while (p != m) {
     c = *(--t);
@@ -186,8 +180,6 @@ static void _cbWin(WM_MESSAGE * pMsg) {
   static WM_HWIN hProg;
   int xSizeWindow, yPos;
   static int Value;
-  unsigned long now_status;
-  unsigned long finish_status;
   int * pValue;
   GUI_RECT Rect;
   static int OldState;
@@ -195,7 +187,6 @@ static void _cbWin(WM_MESSAGE * pMsg) {
   switch (pMsg->MsgId) {
   case WM_DELETE:
     InitUpdate();
-    load_firmware_process();
     Value = 0;
     _IsRunning = 0;
     if (OldState == 0) {
@@ -226,22 +217,16 @@ static void _cbWin(WM_MESSAGE * pMsg) {
   case WM_TIMER:
 #ifndef WIN32
     Value = load_firmware_process();
-    load_firmware_status(&now_status, &finish_status);
 #else
     Value++;
 #endif
     WM_RestartTimer(pMsg->Data.v, 0);
-//    if (Value == 100) {
-    if (Value == 100 && now_status >= finish_status) {
+    if (Value == 100) {
       WM_DeleteTimer(pMsg->Data.v);
       WM_DeleteWindow(pMsg->hWin);
-      if(now_status != finish_status)
-      {
-    	  firmware_update_status_initialize();
-      }
     } else {
       tNow = GUI_GetTime();
-//      Value = ((tNow - t0) * 100) / PROGBAR_PERIOD;
+      Value = ((tNow - t0) * 100) / PROGBAR_PERIOD;
       Value = Value > 100 ? 100 : Value;
       WM_InvalidateWindow(hProg);
       hText = WM_GetDialogItem(pMsg->hWin, GUI_ID_TEXT0);
@@ -300,15 +285,11 @@ static void _SW1_ISR(void * p) {
 */
 void DoUpdate(void) {
   int xSize;
-  int ySize;
 
   if (_IsRunning == 0) {
     _IsRunning = 1;
     xSize = LCD_GetXSize();
-    ySize = LCD_GetYSize();
-    WM_CreateWindowAsChild((xSize - XSIZE_WINDOW) / 2, (ySize - YSIZE_WINDOW) / 2, XSIZE_WINDOW, YSIZE_WINDOW, WM_HBKWIN, WM_CF_SHOW | WM_CF_STAYONTOP, _cbWin, 0);
-    load_firmware_process();
-    firmware_update_request(UPDATE_FILE_NAME);
+    WM_CreateWindowAsChild(xSize - XSIZE_WINDOW, 0, XSIZE_WINDOW, YSIZE_WINDOW, WM_HBKWIN, WM_CF_SHOW | WM_CF_STAYONTOP, _cbWin, 0);
   }
 }
 
@@ -316,24 +297,10 @@ void DoUpdate(void) {
 *
 *       _OnTimerCheckPressedState
 */
-#define LONG_PRESS_COUNT_INITIAL_VALUE 3000
 void CheckPressedState(void) {
-//  if (UpdatePressed) {
-//    UpdatePressed = 0;
-//    DoUpdate();
-  static uint32_t long_press_count = LONG_PRESS_COUNT_INITIAL_VALUE;
-
-  if(in_bank_swap_flag) {
-    if (SW2 == SW_ACTIVE) {
-  	  if(long_press_count == 0) {
-        DoUpdate();
-	    long_press_count = LONG_PRESS_COUNT_INITIAL_VALUE;
-	  }
-	  long_press_count--;
-    }
-    else {
-  	    long_press_count = LONG_PRESS_COUNT_INITIAL_VALUE;
-    }
+  if (UpdatePressed) {
+    UpdatePressed = 0;
+    DoUpdate();
   }
 }
 
@@ -345,6 +312,15 @@ void InitUpdate(void) {
 #ifdef WIN32
   GUI_TIMER_Create(_OnTimerPressUpdate, GUI_GetTime() + UPDATEE_PERIOD, 0, 0);
 #else
+  irq_handle_t    handle;
+
+  R_BSP_RegisterProtectDisable(BSP_REG_PROTECT_MPC);
+  PORT0.PMR.BIT.B3 = 0;
+  PORT0.PDR.BIT.B3 = 0;
+  MPC.P03PFS.BIT.ISEL = 1;
+  R_BSP_RegisterProtectEnable(BSP_REG_PROTECT_MPC);
+  R_IRQ_Open(IRQ_NUM_11, IRQ_TRIG_FALLING, IRQ_PRI_3, &handle, _SW1_ISR);
+  R_IRQ_InterruptEnable(handle, 1);
 #endif
 }
 

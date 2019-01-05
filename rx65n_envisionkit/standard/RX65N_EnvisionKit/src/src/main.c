@@ -65,9 +65,7 @@ void main(void) {
     {
         while(1);	/* fatal error */
     }
-
-    R_Pins_Create();
-	MainTask_EnvisionKit();
+    MainTask_EnvisionKit();
 	while (1);
 }
 

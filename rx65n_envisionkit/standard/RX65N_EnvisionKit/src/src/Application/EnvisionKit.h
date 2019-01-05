@@ -23,9 +23,6 @@ Purpose     : Interface of demo
 #ifndef ENVISIONKIT_H
 #define ENVISIONKIT_H
 
-#ifndef WIN32
-#include "rpbrx65n_2mb.h"
-#endif
 #define TIMER_PERIOD 20
 
 #define DEMO_0        0  // 2D Drawing Engine
@@ -60,29 +57,6 @@ typedef struct {
   WM_HWIN hWin;
 } MANDEL_DATA;
 
-//
-// Bouncing balls
-//
-typedef struct BALL BALL;
-
-struct BALL {
-  BALL * pNext;
-  BALL * pPrev;
-  const GUI_BITMAP * pBm;
-  GUI_COLOR Color;
-  float vx;
-  float vy;
-  float xPos;
-  float yPos;
-};
-
-typedef struct {
-  int x0, y0, x1, y1;
-  WM_HWIN hWin;
-  BALL * pFirst;
-  int NumBalls;
-} BOUNCE_DATA;
-
 /*********************************************************************
 *
 *       Interface
@@ -92,15 +66,9 @@ typedef struct {
 void HelpDialog(int DemoIndex, void (*pfOrigin)(void));
 void BankSwap(void);
 void BouncingBalls(void);
-  void KeepArea_FPU  (BOUNCE_DATA * pData);
-  void KeepArea_NOFPU(BOUNCE_DATA * pData);
-  void MoveBalls_FPU  (BOUNCE_DATA * pData, GUI_TIMER_TIME tDiff);
-  void MoveBalls_NOFPU(BOUNCE_DATA * pData, GUI_TIMER_TIME tDiff);
 void DoUpdate(void);
 void DrawingEngine(void);
 void Mandelbrot(void);
-  void DrawMandelbrot_FPU  (WM_MESSAGE * pMsg, MANDEL_DATA * pData, int x0, int y0, int x1, int y1);
-  void DrawMandelbrot_NOFPU(WM_MESSAGE * pMsg, MANDEL_DATA * pData, int x0, int y0, int x1, int y1);
 void StartScreen(void);
 void InitUpdate(void);
 void InitCheckPressedState(void);

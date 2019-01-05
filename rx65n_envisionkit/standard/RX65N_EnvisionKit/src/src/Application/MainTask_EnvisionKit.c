@@ -264,6 +264,7 @@ void MainTask_EnvisionKit(void) {
 #endif
 #endif
     GUI_Delay(1);
+    GUI_WaitEvent();
   }
 }
 

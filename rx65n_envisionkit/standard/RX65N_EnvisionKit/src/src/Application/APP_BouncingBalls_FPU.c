@@ -22,20 +22,14 @@ Purpose     : Routines to be compiled with FPU enabled
 
 #include "APP_BouncingBalls_Private.h"
 
-/*********************************************************************
-*
-*       KeepArea_FPU
-*/
-void KeepArea_FPU(BOUNCE_DATA * pData) {
-  #include "APP_BouncingBalls_KeepArea.h"
-}
+#include "APP_BouncingBalls_AdvanceSim.h"
 
 /*********************************************************************
 *
-*       MoveBalls_FPU
+*       BALLSSIM_AdvanceSim_FPU
 */
-void MoveBalls_FPU(BOUNCE_DATA * pData, GUI_TIMER_TIME tDiff) {
-  #include "APP_BouncingBalls_MoveBalls.h"
+void BALLSSIM_AdvanceSim_FPU(BALLSIM * pBallsim, const float dt) {
+  _AdvanceSim(pBallsim, dt);
 }
 
 /*************************** End of file ****************************/

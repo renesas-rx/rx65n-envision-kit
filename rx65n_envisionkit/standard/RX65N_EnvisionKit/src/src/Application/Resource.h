@@ -59,6 +59,7 @@ extern const unsigned     aDelaySwapBank_80x80[2];
 //
 // Fonts
 //
+extern GUI_CONST_STORAGE GUI_FONT GUI_Font16_F;
 extern GUI_CONST_STORAGE GUI_FONT GUI_Font16_AA4;
 extern GUI_CONST_STORAGE GUI_FONT GUI_Font21_AA4;
 extern GUI_CONST_STORAGE GUI_FONT GUI_Font24_AA4;

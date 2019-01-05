@@ -83,4 +83,7 @@ Purpose     : Private header file for Mandelbrot demo
 
 #endif  // APP_MANDELBROT_PRIVATE_H
 
+void DrawMandelbrot_FPU  (WM_MESSAGE * pMsg, MANDEL_DATA * pData, int x0, int y0, int x1, int y1);
+void DrawMandelbrot_NOFPU(WM_MESSAGE * pMsg, MANDEL_DATA * pData, int x0, int y0, int x1, int y1);
+
 /*************************** End of file ****************************/

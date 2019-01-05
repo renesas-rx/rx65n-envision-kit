@@ -21,6 +21,7 @@ Purpose     : Drawing engine demo
 */
 
 #include "DIALOG.h"
+#include "LCDConf.h"
 
 #include "EnvisionKit.h"
 #include "Resource.h"
@@ -52,6 +53,14 @@ Purpose     : Drawing engine demo
 #define PIXEL_PER_SECOND 50  // Speed for moving cloud
 
 #define BORDER 20  // Distance from buttons to border
+
+/*********************************************************************
+*
+*       Static data
+*
+**********************************************************************
+*/
+static WM_HWIN _hWin;
 
 /*********************************************************************
 *
@@ -129,6 +138,15 @@ static void _cbButtonHome(WM_MESSAGE * pMsg) {
 
 /*********************************************************************
 *
+*       _OnIdle
+*/
+static void _OnIdle(int Period) {
+  GUI_USE_PARA(Period);
+  WM_InvalidateWindow(_hWin);
+}
+
+/*********************************************************************
+*
 *       _cbWin
 */
 static void _cbWin(WM_MESSAGE * pMsg) {
@@ -140,6 +158,11 @@ static void _cbWin(WM_MESSAGE * pMsg) {
   static int OnOff;
   static int * pOnOff;
   static GUI_TIMER_TIME tLastEvent;
+  static int Fps;
+  static int FpsShow;
+  static int Cnt;
+  static GUI_TIMER_TIME tLastFrame;
+  static GUI_TIMER_TIME tNextFPS;
   GUI_TIMER_TIME tNow, tUsed;
   const GUI_BITMAP * pBm;
   GUI_PID_STATE * pState;
@@ -148,12 +171,19 @@ static void _cbWin(WM_MESSAGE * pMsg) {
   int Id, NCode;
 
   switch (pMsg->MsgId) {
+  case WM_DELETE:
+    LCDCONF_EnableDave2D();
+    GUI_SetWaitEventTimedFunc(NULL);
+    break;
   case WM_CREATE:
-#ifndef WIN32
-    OnOff = LCDCONF_GetDaveActive();
-#endif
+    OnOff = 1;
     xSizeWindow = WM_GetWindowSizeX(pMsg->hWin);
     ySizeWindow = WM_GetWindowSizeY(pMsg->hWin);
+    //
+    // Use idle management to achieve a maximum of FPS
+    //
+    GUI_SetWaitEventTimedFunc(_OnIdle);
+    _hWin = pMsg->hWin;
     //
     // Prepare cloud moving
     //
@@ -186,6 +216,10 @@ static void _cbWin(WM_MESSAGE * pMsg) {
     pBm = BM_HELP_0;
     hItem = BUTTON_CreateUser(xSizeWindow - pBm->XSize - BORDER, BORDER, pBm->XSize, pBm->YSize, pMsg->hWin, WM_CF_SHOW, 0, ID_BUTTON_HELP, 0);
     WM_SetCallback(hItem, _cbButtonHelp);
+    tNextFPS   = GUI_GetTime();
+    tLastFrame = 0;
+    Fps        = 0;
+    Cnt        = 1;
     break;
   case WM_TIMER:
     WM_RestartTimer(hTimer, 0);
@@ -261,6 +295,25 @@ static void _cbWin(WM_MESSAGE * pMsg) {
       break;
     }
     break;
+  case WM_PRE_PAINT:
+    tNow = GUI_GetTime();
+    tUsed = tNow - tLastFrame;
+    if (tUsed) {
+      if (tNow >= tNextFPS) {
+        FpsShow = Fps / Cnt;
+        Fps = 1000 / tUsed;
+        Cnt = 1;
+        tNextFPS += 500;
+      } else {
+        Fps += 1000 / tUsed;
+        Cnt++;
+      }
+    }
+    tLastFrame = tNow;
+    break;
+  case WM_POST_PAINT:
+    //WM_InvalidateWindow(pMsg->hWin);
+    break;
   case WM_PAINT:
     xSizeWindow = WM_GetWindowSizeX(pMsg->hWin);
     ySizeWindow = WM_GetWindowSizeY(pMsg->hWin);
@@ -299,6 +352,14 @@ static void _cbWin(WM_MESSAGE * pMsg) {
     //
     pBm = BM_RX;
     GUI_DrawBitmap(pBm, xPosRX, yPosRX);
+    //
+    // FPS
+    //
+    GUI_SetFont(GUI_FONT_16_ASCII);
+    GUI_SetTextMode(GUI_TM_TRANS);
+    GUI_GotoXY(xSizeWindow / 2 - 30, BORDER);
+    GUI_DispString("FPS: ");
+    GUI_DispDecMin(FpsShow);
     break;
   default:
     WM_DefaultProc(pMsg);

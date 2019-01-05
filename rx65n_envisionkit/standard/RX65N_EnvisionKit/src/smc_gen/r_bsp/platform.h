@@ -215,7 +215,10 @@ DEFINE YOUR SYSTEM - UNCOMMENT THE INCLUDE PATH FOR THE PLATFORM YOU ARE USING.
 
 /* Smart Configurator defined board here. */
 //#include "./board/generic_rx130/r_bsp.h"
+//#include "./board/generic_rx230/r_bsp.h"
+//#include "./board/generic_rx231/r_bsp.h"
 //#include "./board/generic_rx64m/r_bsp.h"
+//#include "./board/generic_rx71m/r_bsp.h"
 
 /***********************************************************************************************************************
 MAKE SURE AT LEAST ONE PLATFORM WAS DEFINED - DO NOT EDIT BELOW THIS POINT

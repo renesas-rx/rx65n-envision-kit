@@ -198,13 +198,13 @@ Configuration Options
    0 = The RTC is not to be used.
    1 = The RTC is to be used.
 */
-#define BSP_CFG_RTC_ENABLE              (0)
+#define BSP_CFG_RTC_ENABLE              (0) // <-- Updated by GUI. Do not edit this value manually
 
 /* Sub-Clock Oscillator Drive Capacity Control (RTCDV).
    0 = Drive capacity for standard CL.
    1 = Drive capacity for low CL. 
 */
-#define BSP_CFG_SOSC_DRV_CAP            (0) //standard CL by default
+#define BSP_CFG_SOSC_DRV_CAP            (0) // <-- Updated by GUI. Do not edit this value manually //standard CL by default
 
 /* Clock configuration options.
    The input clock frequency is specified and then the system clocks are set by specifying the multipliers used. The
@@ -446,7 +446,7 @@ Configuration Options
    0 = RTOS is not used. 
    1 = RTOS is used.
 */
-#define BSP_CFG_RTOS_USED               (0)
+#define BSP_CFG_RTOS_USED               (0) // <-- Updated by GUI. Do not edit this value manually
 
 /* By default modules will use global locks found in mcu_locks.c. If the user is using a RTOS and would rather use its
    locking mechanisms then they can change this macro. 
@@ -514,7 +514,7 @@ Configuration Options
 
 /* This macro is used to define the voltage that is supplied to the MCU (Vcc). This macro is defined in millivolts. This
    macro does not actually change anything on the MCU. Some FIT modules need this information so it is defined here. */
-#define BSP_CFG_MCU_VCC_MV                          (3300)
+#define BSP_CFG_MCU_VCC_MV                          (3300) // <-- Updated by GUI. Do not edit this value manually
 
 #endif /* R_BSP_CONFIG_REF_HEADER_FILE */
 
