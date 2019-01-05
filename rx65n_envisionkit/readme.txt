@@ -1,5 +1,5 @@
 ----------------------------------------------
-RX65N Envition Kit Demo Firmware (20171113)
+RX65N Envition Kit Demo Firmware (20190105)
 ----------------------------------------------
 -release data
  rx65n_envisionkit.zip
