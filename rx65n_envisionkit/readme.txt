@@ -6,14 +6,19 @@ RX65N Envition Kit Demo Firmware (20171113)
   benchmark         ("Benchmark Demo" e2 studio workspace)
   rx65n_secure_boot ("Secure Boot" e2 studio workspace)
   standard          ("Standard Demo" e2 studio workspace)
+  bin               ("Benchmark/Standard Demos" renesas secure update file (*.rsu))
   convert           (Converter for from motrola file to renesas secure update (*.rsu))
    exe
     convert.exe
 
 -environment
  Board: RX65N Envision Kit.
- IDE: e2 studio 6.1.0 or later (please use: https://www.renesas.com/en-eu/software/D4000508.html)
- Compiler: v2.07.00 or later
+ IDE: e2 studio 7.2.0 or later 
+   (ja) https://www.renesas.com/jp/ja/software/D4000895.html
+   (en) https://www.renesas.com/us/en/software/D4000896.html
+ Compiler: CC-RX v3.00.00 or later
+   (ja) https://www.renesas.com/jp/ja/software/D4000889.html
+   (en) https://www.renesas.com/us/en/software/D4000892.html
  Devices: USB cable(power supply/debug) - 1pcs
           USB memory - 1pcs
           Windows PC or mobile battery (power source) - 1pcs
