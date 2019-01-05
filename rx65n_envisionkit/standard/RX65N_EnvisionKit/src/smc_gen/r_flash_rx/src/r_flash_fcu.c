@@ -25,6 +25,10 @@
 *              : 05.10.2016 1.00    First Release
 *              : 06.02.2017 1.10    Added support for RX65N-2M (bank/application swap).
 *                                   Added code to clear ECC flag in flash_fcuram_codecopy();
+*              : 23.02.2018 1.20    Replaced FLASH_TYPE_3 check with FLASH_HAS_FCU_RAM_ENABLE.
+*                                   Fixed bug where the error return code was not being checked when calling
+*                                     FLASH_CMD_CONFIG_CLOCK in flash_init_fcu().
+*              : 06.09.2018 1.30    Modified flash_write() to check for FLASH_CUR_STOP (write access error occurred).
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
@@ -77,16 +81,19 @@ flash_err_t flash_init_fcu(void)
     FLASH.FWEPROR.BYTE = 0x01;
 
     /* Let the sequencer know what FCLK is running at */
-    R_FLASH_Control(FLASH_CMD_CONFIG_CLOCK, &fclk);
+    err = R_FLASH_Control(FLASH_CMD_CONFIG_CLOCK, &fclk);
 
     /* Copy the FCU firmware to FCU RAM */
-#if (FLASH_TYPE == FLASH_TYPE_3)
-    err = flash_fcuram_codecopy();
+#ifdef FLASH_HAS_FCU_RAM_ENABLE
+    if (err == FLASH_SUCCESS)
+    {
+        err = flash_fcuram_codecopy();
+    }
 #endif
     return err;
 }
 
-#if (FLASH_TYPE == FLASH_TYPE_3)
+#ifdef FLASH_HAS_FCU_RAM_ENABLE
 /***********************************************************************************************************************
  * Function Name: flash_fcuram_codecopy
  * Description  : This function copies FCU firmware to the FCURAM.
@@ -153,7 +160,7 @@ flash_err_t flash_fcuram_codecopy(void)
 
     return err;
 }
-#endif // FLASH_TYPE_3
+#endif // FLASH_HAS_FCU_RAM_ENABLE
 
 
 #if (FLASH_CFG_CODE_FLASH_ENABLE == 1)
@@ -618,6 +625,12 @@ flash_err_t flash_write(uint32_t src_start_address,
             while (FLASH.FSTATR.BIT.DBFULL == 1)    // wait for fcu buffer to empty
                 ;
 
+            if (g_current_parameters.current_operation == FLASH_CUR_STOP)   // err occurred; addr known good; protection err
+            {
+                err = FLASH_ERR_ACCESSW;
+                break;
+            }
+
             g_current_parameters.src_addr += 2;
             g_current_parameters.dest_addr += 2;
             g_current_parameters.total_count--;
@@ -631,7 +644,8 @@ flash_err_t flash_write(uint32_t src_start_address,
 
         /* Return if in BGO mode. Processing will finish in FRDYI interrupt */
         if ((g_current_parameters.current_operation == FLASH_CUR_CF_BGO_WRITE)
-         || (g_current_parameters.current_operation == FLASH_CUR_DF_BGO_WRITE))
+         || (g_current_parameters.current_operation == FLASH_CUR_DF_BGO_WRITE)
+         || (g_current_parameters.current_operation == FLASH_CUR_STOP))
         {
             break;
         }

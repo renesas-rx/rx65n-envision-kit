@@ -49,6 +49,8 @@ Purpose     : Bank swap demo
 #define ID_TIMER0     (GUI_ID_USER + 3)
 
 #ifndef WIN32
+int in_bank_swap_flag = 0;
+extern int _IsRunning;
 extern void bank_swap(void);
 #endif
 
@@ -156,6 +158,7 @@ static void _cbWin(WM_MESSAGE * pMsg) {
 
   switch (pMsg->MsgId) {
   case WM_CREATE:
+	in_bank_swap_flag = 1;
     xSizeWindow = WM_GetWindowSizeX(pMsg->hWin);
     ySizeWindow = WM_GetWindowSizeY(pMsg->hWin);
     //
@@ -182,6 +185,8 @@ static void _cbWin(WM_MESSAGE * pMsg) {
     WM_CreateWindowAsChild(BORDER, ySizeWindow - 1 - BORDER - apbmSwapBank_80x80[0]->YSize, apbmSwapBank_80x80[0]->XSize, apbmSwapBank_80x80[0]->YSize, pMsg->hWin, WM_CF_SHOW, _cbAnimation, 0);
     break;
   case WM_NOTIFY_PARENT:
+	in_bank_swap_flag = 0;
+	if(!_IsRunning) {
     Id = WM_GetId(pMsg->hWinSrc);
     NCode = pMsg->Data.v;
     switch (Id) {
@@ -204,10 +209,13 @@ static void _cbWin(WM_MESSAGE * pMsg) {
     case ID_BUTTON_SWAP:
       switch (NCode) {
       case WM_NOTIFICATION_RELEASED:
-        bank_swap();
+    	load_firmware_process();
+    	bank_swap();
         break;
       }
       break;
+    }
+    break;
     }
     break;
   case WM_PAINT:
@@ -227,11 +235,16 @@ static void _cbWin(WM_MESSAGE * pMsg) {
     ySizeFont = GUI_GetFontSizeY();
     Rect.y0 = GUI_GetDispPosY();
     Rect.x0 = 120;
-    Rect.y1 = Rect.y0 + 3 * ySizeFont;
+    Rect.y1 = Rect.y0 + 1 * ySizeFont;
     Rect.x1 = 359;
-    GUI_DispStringInRect("Swap the bank?\n"
-                         "Bank A: FW xx\n"
-                         "Bank B: FW xx", &Rect, GUI_TA_HCENTER);
+    GUI_DispStringInRect("Swap the bank?", &Rect, GUI_TA_HCENTER);
+
+    Rect.y0 = GUI_GetDispPosY() + 1 * ySizeFont;
+    Rect.x0 = 120;
+    Rect.y1 = Rect.y0 + 2 * ySizeFont;
+    Rect.x1 = 459;
+    GUI_DispStringInRect("Bank A: Standard FW rev 1.00\n"
+                         "Bank B: Benchmark FW rev x.xx", &Rect, GUI_TA_LEFT);
     break;
   default:
     WM_DefaultProc(pMsg);

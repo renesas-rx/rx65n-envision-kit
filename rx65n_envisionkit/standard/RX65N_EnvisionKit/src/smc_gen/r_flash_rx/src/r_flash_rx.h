@@ -35,6 +35,7 @@
 *                              Updated exported variables and functions to reflect updated r_flash_rx.c contents.
 *           06.02.2017 3.10    Added support for RX65N-2M (bank/application swap).
 *           19.06.2017 3.20    Moved FLASH_HAS_xxx equates to r_flash_rx_if.h
+*           31.10.2017 3.30    Added extern for g_flash_lock;
 ***********************************************************************************************************************/
 
 #ifndef FLASH_RX_HEADER_FILE
@@ -84,6 +85,8 @@
     #include <targets/rx64m/r_flash_rx64m.h>
 #elif defined(MCU_RX651) || defined(MCU_RX65N)
     #include "./src/targets/rx65n/r_flash_rx65n.h"
+#elif defined(MCU_RX66T)
+    #include "./src/targets/rx66t/r_flash_rx66t.h"
 #elif defined(MCU_RX71M)
     #include "./src/targets/rx71m/r_flash_rx71m.h"
 #else
@@ -172,6 +175,7 @@ typedef enum
 /***********************************************************************************************************************
 Exported global variables
 ***********************************************************************************************************************/
+extern int32_t g_flash_lock;
 extern flash_states_t g_flash_state;
 extern FCU_BYTE_PTR g_pfcu_cmd_area;
 

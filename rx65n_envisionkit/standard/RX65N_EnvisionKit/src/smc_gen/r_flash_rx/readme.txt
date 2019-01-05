@@ -5,12 +5,12 @@ r_flash_rx
 
 Document Number 
 ---------------
-r01an2184eu0320
-r01an2184ju0320
+r01an2184eu0340
+r01an2184ju0340
 
 Version
 -------
-v3.20
+v3.40
 
 Overview
 --------
@@ -54,6 +54,7 @@ Supported MCUs
 * RX63T Group
 * RX64M Group
 * RX651, RX65N Group
+* RX66T Group
 * RX71M Group
 
 
@@ -84,6 +85,7 @@ Boards Tested On
 * RSKRX64M
 * RSKRX65N
 * RSKRX65N-2
+* RSKRX66T
 * RSKRX71M
 
 
@@ -103,7 +105,7 @@ Peripherals Used Directly
 
 Required Packages
 -----------------
-* r_bsp      V3.60
+* r_bsp      V3.90
 
 How to add to your project
 --------------------------
@@ -134,7 +136,7 @@ How to add to your project
 
 Toolchain(s) Used
 -----------------
-* Renesas RXC v2.06.00
+* Renesas RXC v2.07.00
 
 
 File Structure
@@ -145,9 +147,9 @@ r_flash_rx
 |
 +---doc
 |   +-- en
-|   |   +-- r01an2184eu0320-rx.pdf
+|   |   +-- r01an2184eu0340-rx.pdf
 |   +-- ja
-|       +-- r01an2184ju0320-rx.pdf
+|       +-- r01an2184ju0340-rx.pdf
 |
 +---ref
 |   +-- r_flash_rx_config_reference.h
@@ -267,6 +269,10 @@ r_flash_rx
         |
         +--rx65n
              +-- r_flash_rx65n.h
+             +-- r_mcu_config_reference.h
+        |
+        +--rx66t
+             +-- r_flash_rx66t.h
              +-- r_mcu_config_reference.h
         |
         +--rx71m

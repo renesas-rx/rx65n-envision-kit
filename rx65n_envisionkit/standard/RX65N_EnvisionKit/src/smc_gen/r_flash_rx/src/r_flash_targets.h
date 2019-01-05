@@ -117,6 +117,9 @@ Macro definitions
     #define MCU_RX651
     #define MCU_RX65N
     #define MCU_RX65_ALL
+#elif defined(BSP_MCU_RX66T)
+    #define MCU_RX66T
+    #define MCU_RX66_ALL
 #elif defined(BSP_MCU_RX71M)
     #define MCU_RX71M
     #define MCU_RX71_ALL

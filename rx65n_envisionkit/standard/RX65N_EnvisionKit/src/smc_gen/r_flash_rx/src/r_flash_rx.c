@@ -28,6 +28,8 @@
 *              : 12.08.2016 2.00    Modified for BSPless operation (softwareLock()/Unlock()).
 *              : 05.10.2016 3.00    Modified API functions to call either flash_api_xxx Flash Type 2 functions
 *                                   or r_flash_xxx Flash Type 1, 3, 4 functions.
+*              : 31.10.2017 3.10    Added function R_FLASH_Close().
+*	           : 23.02.2018 3.20	Removed unused variable warnings in R_FlashCodeCopy().
 ***********************************************************************************************************************/
 
 /***********************************************************************************************************************
@@ -108,9 +110,11 @@ void R_FlashCodeCopy(void)
 {
 #if (FLASH_CFG_CODE_FLASH_ENABLE == 1)
 
+#if ((FLASH_CFG_CODE_FLASH_RUN_FROM_ROM == 0) || (FLASH_IN_DUAL_BANK_MODE == 1))
     uint8_t * p_rom_section;    // ROM source location
     uint8_t * p_ram_section;    // RAM copy destination
     uint32_t  bytes_copied;
+#endif
 
 #if (FLASH_CFG_CODE_FLASH_RUN_FROM_ROM == 0)
     /* Initialize pointers */
@@ -138,6 +142,23 @@ void R_FlashCodeCopy(void)
 
 #endif
 }
+
+
+/***********************************************************************************************************************
+* Function Name: R_FLASH_Close
+* Description  : This function closes the flash driver.
+* Arguments    : None
+* Return Value : see called function
+***********************************************************************************************************************/
+flash_err_t R_FLASH_Close(void)
+{
+#if (FLASH_TYPE == FLASH_TYPE_2)
+    return(flash_api_close());
+#else
+    return(r_flash_close());
+#endif
+}
+
 
 
 /* FUNCTIONS WHICH MUST BE RUN FROM RAM FOLLOW */

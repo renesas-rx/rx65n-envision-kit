@@ -30,6 +30,8 @@
 *           06.02.2017 3.10    Added support for RX65N-2M (bank/application swap).
 *           11.08.2017 3.20    Modified flash_toggle_banksel_reg() and flash_write_faw_reg() so always poll
 *                                for FRDY even when in BGO/interrupt mode.
+*           06.09.2018 3.30    Modified R_CF_SetAccessWindow() to accept end address of FLASH_CF_BLOCK_END
+*                                (will use special value 0x800).
 ********************************************************************************************************************/
 
 /********************************************************************************************************************
@@ -373,7 +375,14 @@ flash_err_t R_CF_SetAccessWindow (flash_access_window_config_t  *pAccessInfo)
     faw.LONG = FLASH.FAWMON.LONG;
 
     faw.BIT.FAWS = (pAccessInfo->start_addr & 0x00FFE000) >> 13;
-    faw.BIT.FAWE = (pAccessInfo->end_addr & 0x00FFE000) >> 13;
+    if (pAccessInfo->end_addr == FLASH_CF_BLOCK_END)
+    {
+        faw.BIT.FAWE = 0x800;
+    }
+    else
+    {
+        faw.BIT.FAWE = (pAccessInfo->end_addr & 0x00FFE000) >> 13;
+    }
 
     err = flash_write_faw_reg(faw);
 

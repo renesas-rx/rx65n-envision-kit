@@ -41,6 +41,8 @@
 *                              Added check for lockbit program/read on illegal DF addresses.
 *                              Added check so Open() cannot be called while another operation is in progress in BGO mode.
 *           02.08.2017 2.20    Removed #include r_mcu_config.h (now done via r_flash_rx_if.h"
+*           31.10.2017 2.30    Modified flash_api_open() to check for FLASH_ERR_ALREADY_OPEN.
+*                              Added function flash_api_close();
 ********************************************************************************************************************/
 
 /********************************************************************************************************************
@@ -98,7 +100,8 @@ Typedef definitions
 Private global variables and functions
 ***********************************************************************************************************************/
 
-static int32_t g_flash_lock;
+static int32_t g_flash_lock2;
+static bool    g_driver_opened=false;
 
 /* Signals whether FCU firmware has been transferred to the FCU RAM
    0 : No, 1 : Yes */
@@ -292,6 +295,8 @@ extern flash_states_t g_flash_state;
 *                    API initialized successfully.
 *                FLASH_ERR_BUSY
 *                    API has already been initialized and another operation is ongoing.
+*                FLASH_ERR_ALREADY_OPEN
+*                    Open() called twice without intermediate Close()
 *                FLASH_ERR_FAILURE
 *                    Initialization failed.
 *                    A RESET was performed on the Flash circuit to rectify any internal errors
@@ -303,6 +308,12 @@ flash_err_t flash_api_open(void)
     if (flash_grab_state(FLASH_INITIALIZATION) != FLASH_SUCCESS )
     {
         return FLASH_ERR_BUSY;
+    }
+
+    if (g_driver_opened == true)
+    {
+        flash_release_state2();
+        return FLASH_ERR_ALREADY_OPEN;
     }
 
     /* If FCU firmware has already been transferred to FCU RAM,
@@ -322,7 +333,50 @@ flash_err_t flash_api_open(void)
     }
 
     /* Unlock driver */
+    g_driver_opened = true;
     flash_release_state2();
+
+
+    return FLASH_SUCCESS;
+}
+
+
+/***********************************************************************************************************************
+* Function Name: flash_api_close
+* Description  : This function sets the driver back to pre-Open() conditions.
+* Arguments    : void
+* Return Value : FLASH_SUCCESS -
+*                    API closed successfully.
+*                FLASH_ERR_BUSY
+*                    Another operation is ongoing.
+***********************************************************************************************************************/
+flash_err_t flash_api_close(void)
+{
+
+    /* Lock driver */
+    if (flash_grab_state(FLASH_UNINITIALIZED) != FLASH_SUCCESS )
+    {
+        return FLASH_ERR_BUSY;
+    }
+
+
+    /* mark fcu as uninitialized */
+    g_fcu_transfer_complete = 0;
+
+
+    /* disable interrupts if enabled */
+#if ((FLASH_CFG_DATA_FLASH_BGO == 1) || (FLASH_CFG_CODE_FLASH_BGO == 1))
+    /* Disable flash interface error (FIFERR) */
+    IEN(FCU, FIFERR) = 0;
+    /* Disable flash ready interrupt (FRDYI) */
+    IEN(FCU, FRDYI) = 0;
+#endif
+
+    /* Show driver as closed and release hold on lock.
+     * Do not use flash_release_state2() because we do not want to set state to FLASH_READY.
+     */
+    g_driver_opened = false;
+    flash_softwareUnlock(&g_flash_lock2);
 
     return FLASH_SUCCESS;
 }
@@ -781,7 +835,7 @@ End of function  R_FlashGetStatus
 static uint8_t flash_grab_state (flash_states_t new_state)
 {
     /* Check to see if lock was successfully taken */
-    if (flash_softwareLock(&g_flash_lock) == true)
+    if (flash_softwareLock(&g_flash_lock2) == true)
     {
         /* Lock taken, we can change state */
         g_flash_state = new_state;
@@ -819,7 +873,7 @@ static void flash_release_state2 (void)
     g_flash_state = FLASH_READY;
 
     /* Release hold on lock */
-    flash_softwareUnlock(&g_flash_lock);
+    flash_softwareUnlock(&g_flash_lock2);
 }
 /******************************************************************************
 End of function  flash_release_state2

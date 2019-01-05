@@ -101,7 +101,7 @@ static void _cbWin(WM_MESSAGE * pMsg) {
                               ySizeWindow / 2 - BORDER, 
                               pMsg->hWin, WM_CF_SHOW, 0, 
                               ID_BUTTON_DRAWINGENGINE, 0);
-    BUTTON_SetText(hItem, "2D\nDrawing\nengine");
+    BUTTON_SetText(hItem, "2D\nDrawing\nEngine");
     BUTTON_SetFont(hItem, FONT_SMALL);
     BUTTON_SetSkin(hItem, _ButtonSkin);
     //

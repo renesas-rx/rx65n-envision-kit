@@ -127,6 +127,11 @@
 *                              Repackaged include files so r_mcu_config.h not required for projects using BSP.
 *                              Fixed bug in RX65N-2M dual mode operation where sometimes when running in bank 0,
 *                                 performing a bank swap caused application execution to fail.
+*           31.10.2017 3.30    Added error check FLASH_ERR_ALREADY_OPEN to R_FLASH_Open().
+*                              Added function R_FLASH_Close().
+*           06.09.2018 3.40    Added support for RX66T.
+*                              Added support for 256K and 384K RX111 variants.
+*                              Added support for 256K and 384K RX24T variants.
 ***********************************************************************************************************************/
 
 #ifndef FLASH_INTERFACE_HEADER_FILE
@@ -141,7 +146,7 @@ Macro definitions
 ***********************************************************************************************************************/
 /* Driver Version Number. */
 #define FLASH_RX_VERSION_MAJOR           (3)
-#define FLASH_RX_VERSION_MINOR           (20)
+#define FLASH_RX_VERSION_MINOR           (40)
 
 
 /***********************************************************************************************************************
@@ -167,7 +172,7 @@ Typedef definitions
      defined(MCU_RX634))
 #define FLASH_TYPE      FLASH_TYPE_2
 
-#elif (defined(MCU_RX64M) || defined(MCU_RX71M))
+#elif (defined(MCU_RX64M) || defined(MCU_RX66T) || defined(MCU_RX71M))
 #define FLASH_TYPE              FLASH_TYPE_3
 
 #elif (defined(MCU_RX651) || defined(MCU_RX65N))
@@ -207,7 +212,8 @@ Typedef definitions
 #endif
 
 #if (defined(MCU_RX61_ALL) || defined(MCU_RX62_ALL) || defined(MCU_RX63_ALL) || \
-     defined(MCU_RX64_ALL) || defined(MCU_RX65_ALL) || defined(MCU_RX71_ALL))
+     defined(MCU_RX64_ALL) || defined(MCU_RX65_ALL) || defined(MCU_RX66_ALL) || \
+     defined(MCU_RX71_ALL))
 #define FLASH_HAS_DIFF_CF_BLOCK_SIZES   1
 #endif
 
@@ -243,6 +249,11 @@ Typedef definitions
 #define FLASH_HAS_FCU               (1)
 #endif
 
+#if (defined(MCU_RX64M) || defined(MCU_RX71M))
+#define FLASH_HAS_FCU_RAM_ENABLE    (1)
+#define FLASH_HAS_2BIT_ERR_CHK      (1)
+#endif
+
 #if ((FLASH_TYPE == 4) && (FLASH_HAS_APP_SWAP == 1) && (BSP_CFG_CODE_FLASH_BANK_MODE == 0) && (FLASH_CFG_CODE_FLASH_ENABLE == 1))
 #define FLASH_IN_DUAL_BANK_MODE     (1)
 #endif
@@ -252,6 +263,7 @@ Typedef definitions
 #else
 #define MCU_ROM_REGION_SIZE_BYTES    MCU_ROM_SIZE_BYTES
 #endif
+
 
 
 /* Return error codes */
@@ -275,6 +287,7 @@ typedef enum _flash_err
     FLASH_ERR_UNSUPPORTED,  // Command not supported for this flash type
     FLASH_ERR_SECURITY,     // Pgm/Erase error due to part locked (FAW.FSPR)
     FLASH_ERR_TIMEOUT,      // Timeout Condition
+    FLASH_ERR_ALREADY_OPEN  // Open() called twice without intermediate Close()
 } flash_err_t;
 
 
@@ -516,6 +529,7 @@ Exported global variables
 Exported global functions (to be accessed by other files)
 ***********************************************************************************************************************/
 flash_err_t R_FLASH_Open(void);
+flash_err_t R_FLASH_Close(void);
 flash_err_t R_FLASH_Write(uint32_t src_address, uint32_t dest_address, uint32_t num_bytes);
 flash_err_t R_FLASH_Erase(flash_block_address_t block_start_address, uint32_t num_blocks);
 flash_err_t R_FLASH_BlankCheck(uint32_t address, uint32_t num_bytes, flash_res_t *blank_check_result);
