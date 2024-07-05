@@ -14,12 +14,18 @@ RX65N Envition Kit Demo Firmware (20190105)
 -environment
  Board: RX65N Envision Kit.
  IDE: e2 studio 7.2.0 or later 
-   (ja) https://www.renesas.com/jp/ja/software/D4000895.html
-   (en) https://www.renesas.com/us/en/software/D4000896.html
+  product page: https://www.renesas.com/software-tool/e-studio
+  version search: https://www.renesas.com/support/document-search
+    -> check "type(タイプで絞り込み)" to "Software, Tools, Sample Code(ソフトウェア・ツール・サンプルコード) -> Upgrade - Integrated Development Environment(アップデート-統合開発環境)"
+    -> set "category(カテゴリ)" to "all(すべて)"
+    -> set "title(タイトル)" to ”e² studio”
  Compiler: CC-RX v3.00.00 or later
-   (ja) https://www.renesas.com/jp/ja/software/D4000889.html
-   (en) https://www.renesas.com/us/en/software/D4000892.html
- Devices: USB cable(power supply/debug) - 1pcs
+   product page: https://www.renesas.com/software-tool/cc-compiler-package-rx-family
+   version search: https://www.renesas.com/support/document-search
+    -> check "type(タイプで絞り込み)" to "Software, Tools, Sample Code(ソフトウェア・ツール・サンプルコード) -> Upgrade - Compiler(アップデート-コンパイラ)"
+    -> set "category(カテゴリ)" to "all(すべて)"
+    -> set "title(タイトル)" to ”CC-RX”
+Devices: USB cable(power supply/debug) - 1pcs
           USB memory - 1pcs
           Windows PC or mobile battery (power source) - 1pcs
 
